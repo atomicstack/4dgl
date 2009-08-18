@@ -1,0 +1,98 @@
+#platform "uOLED-32024-P1T"
+
+#inherit "4DGL_16bitColours.fnc"
+
+#constant NUM_COLOURS   22
+#constant SUBDIVISIONS  10
+#constant FG_COLOR      0x19
+#constant BG_COLOR      0x00
+
+#DATA
+  word SQUARE_Y 0,32,64,96,128,160,192,224,256,288,320
+  word SQUARE_X 0,24,48,72,96,120,144,168,192,216,240
+  byte COLOURS  5,10,15,20,25,30,35,40,45,50,55,55,50,45,40,35,30,25,20,15,10,5
+#END
+
+var rect_colour_map[22];
+var rect_colour[100];
+
+//----------------------------------------------------------------------------------------
+
+func init_colours()
+
+  var i;
+
+  i := 0;
+  
+  repeat
+    rect_colour_map[i] := gfx_RGBto565( COLOURS[i], COLOURS[i], COLOURS[i] );
+  until ( i++ == NUM_COLOURS );
+
+endfunc
+
+//----------------------------------------------------------------------------------------
+
+func init() 
+
+  var i;
+  SEED(1);
+
+  repeat
+    rect_colour[i++] := RAND() % NUM_COLOURS;
+  until (i >= 100);
+
+endfunc
+
+//----------------------------------------------------------------------------------------
+
+func draw_rectangle (var rect_row, var rect_col, var rect_id)
+  var this_colour;
+  this_colour := rect_colour[rect_id];
+      
+  gfx_Rectangle(
+    SQUARE_X[rect_row],   SQUARE_Y[rect_col],
+    SQUARE_X[rect_row+1], SQUARE_Y[rect_col+1],
+    rect_colour_map[this_colour++]
+  );
+
+  if (RAND() % 5) 
+    rect_colour[rect_id] := this_colour % NUM_COLOURS;
+  endif
+endfunc
+
+//----------------------------------------------------------------------------------------
+
+func main()
+    var row;
+    var col;    
+    var n;
+      
+    init();
+    init_colours();
+     
+repeat
+  n := 0;
+  row := 0;
+  
+  repeat
+    col := 0;
+
+    repeat
+      draw_rectangle(row, col++, n++);   
+    until ( col >= SUBDIVISIONS );
+       
+    col := 0;
+    row++;
+  until ( row >= SUBDIVISIONS );
+
+  display_Vsync();   
+  pause(40);     
+forever 
+
+endfunc
+
+//----------------------------------------------------------------------------------------
+
+
+
+
